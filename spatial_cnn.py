@@ -76,9 +76,9 @@ class Spatial_CNN():
     def build_model(self):
         print('==> Build model and setup loss and optimizer')
         #build model
-        self.model = resnet101(pretrained= True, channel=3)
+        self.model = resnet101(pretrained= True, channel=3).cuda()
         #Loss function and optimizer
-        self.criterion = nn.CrossEntropyLoss() #.cuda()
+        self.criterion = nn.CrossEntropyLoss().cuda()
         self.optimizer = torch.optim.SGD(self.model.parameters(), self.lr, momentum=0.9)
         self.scheduler = ReduceLROnPlateau(self.optimizer, 'min', patience=1,verbose=True)
     
@@ -142,16 +142,16 @@ class Spatial_CNN():
             # measure data loading time
             data_time.update(time.time() - end)
             
-            #label = label #.cuda() # async=True)
-            target_var = Variable(label) #.cuda()
+            label = label.cuda() # async=True)
+            target_var = Variable(label).cuda()
 
             assert data_dict.keys() is not None
             # compute output
-            output = Variable(torch.zeros(len(data_dict['img1']),101).float()) #.cuda()
+            output = Variable(torch.zeros(len(data_dict['img1']),101).float()).cuda()
             for i in range(len(data_dict)):
                 key = 'img'+str(i)
                 data = data_dict[key]
-                input_var = Variable(data) #.cuda()
+                input_var = Variable(data).cuda()
                 output += self.model(input_var)
 
             loss = self.criterion(output, target_var)
@@ -194,9 +194,9 @@ class Spatial_CNN():
         progress = tqdm(self.test_loader)
         for i, (keys,data,label) in enumerate(progress):
             
-            label = label #.cuda(async=True)
-            data_var = Variable(data, volatile=True) #.cuda(async=True)
-            label_var = Variable(label, volatile=True) #.cuda(async=True)
+            label = label.cuda() # async=True)
+            data_var = Variable(data, volatile=True).cuda() #.cuda(async=True)
+            label_var = Variable(label, volatile=True).cuda() #.cuda(async=True)
 
             # compute output
             output = self.model(data_var)
@@ -246,7 +246,7 @@ class Spatial_CNN():
         video_level_preds = torch.from_numpy(video_level_preds).float()
             
         top1,top5 = accuracy(video_level_preds, video_level_labels, topk=(1,5))
-        loss = self.criterion(Variable(video_level_preds), Variable(video_level_labels)) 
+        loss = self.criterion(Variable(video_level_preds).cuda(), Variable(video_level_labels).cuda())
         #.cuda(), Variable(video_level_labels) #.cuda()) 
                             
         top1 = float(top1.numpy())
