@@ -33,14 +33,14 @@ parser.add_argument('--start-epoch', default=0, type=int, metavar='N', help='man
 def main():
     global arg
     arg = parser.parse_args()
-    print arg
+    print(arg)
 
     #Prepare DataLoader
     data_loader = dataloader.spatial_dataloader(
                         BATCH_SIZE=arg.batch_size,
                         num_workers=8,
-                        path='/home/ubuntu/data/UCF101/spatial_no_sampled/',
-                        ucf_list ='/home/ubuntu/cvlab/pytorch/ucf101_two_stream/github/UCF_list/',
+                        path='./data/jpegs_256/',
+                        ucf_list ='./UCF_list/',
                         ucf_split ='01', 
                         )
     
@@ -74,7 +74,7 @@ class Spatial_CNN():
         self.test_video=test_video
 
     def build_model(self):
-        print ('==> Build model and setup loss and optimizer')
+        print('==> Build model and setup loss and optimizer')
         #build model
         self.model = resnet101(pretrained= True, channel=3).cuda()
         #Loss function and optimizer
@@ -251,7 +251,7 @@ class Spatial_CNN():
         top1 = float(top1.numpy())
         top5 = float(top5.numpy())
             
-        #print(' * Video level Prec@1 {top1:.3f}, Video level Prec@5 {top5:.3f}'.format(top1=top1, top5=top5))
+        print(' * Video level Prec@1 {top1:.3f}, Video level Prec@5 {top5:.3f}'.format(top1=top1, top5=top5))
         return top1,top5,loss.data.cpu().numpy()
 
 

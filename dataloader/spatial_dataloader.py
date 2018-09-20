@@ -3,8 +3,10 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 import random
-from split_train_test_video import *
 from skimage import io, color, exposure
+
+
+from .split_train_test_video import *
 
 class spatial_dataset(Dataset):  
     def __init__(self, dic, root_dir, mode, transform=None):
@@ -35,7 +37,7 @@ class spatial_dataset(Dataset):
     def __getitem__(self, idx):
 
         if self.mode == 'train':
-            video_name, nb_clips = self.keys[idx].split(' ')
+            video_name, nb_clips = list(self.keys)[idx].split(' ')
             nb_clips = int(nb_clips)
             clips = []
             clips.append(random.randint(1, nb_clips/3))
@@ -79,12 +81,12 @@ class spatial_dataloader():
         self.train_video, self.test_video = splitter.split_video()
 
     def load_frame_count(self):
-        #print '==> Loading frame number of each video'
-        with open('dic/frame_count.pickle','rb') as file:
-            dic_frame = pickle.load(file)
-        file.close()
+        print('==> Loading frame number of each video')
+        with open('./dataloader/dic/frame_count.pickle','rb') as f:
+            dic_frame = pickle.load(f)
+        f.close()
 
-        for line in dic_frame :
+        for line in dic_frame:
             videoname = line.split('_',1)[1].split('.',1)[0]
             n,g = videoname.split('_',1)
             if n == 'HandStandPushups':
@@ -110,7 +112,7 @@ class spatial_dataloader():
             self.dic_training[key] = self.train_video[video]
                     
     def val_sample20(self):
-        print '==> sampling testing frames'
+        print('==> sampling testing frames')
         self.dic_testing={}
         for video in self.test_video:
             nb_frame = self.frame_count[video]-10+1
@@ -127,8 +129,8 @@ class spatial_dataloader():
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
                 ]))
-        print '==> Training data :',len(training_set),'frames'
-        print training_set[1][0]['img1'].size()
+        print('==> Training data :',len(training_set),'frames')
+        #print(training_set[1][0]['img1'].size())
 
         train_loader = DataLoader(
             dataset=training_set, 
@@ -144,8 +146,8 @@ class spatial_dataloader():
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],std=[0.229, 0.224, 0.225])
                 ]))
         
-        print '==> Validation data :',len(validation_set),'frames'
-        print validation_set[1][1].size()
+        print('==> Validation data :',len(validation_set),'frames')
+        #print(validation_set[1][1].size())
 
         val_loader = DataLoader(
             dataset=validation_set, 
