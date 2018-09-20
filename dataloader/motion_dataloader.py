@@ -62,7 +62,7 @@ class motion_dataset(Dataset):
         return len(self.keys)
 
     def __getitem__(self, idx):
-        #print ('mode:',self.mode,'calling Dataset:__getitem__ @ idx=%d'%idx)
+        print ('mode:',self.mode,'calling Dataset:__getitem__ @ idx=%d'%idx)
         
         if self.mode == 'train':
             self.video, nb_clips = self.keys[idx].split('-')

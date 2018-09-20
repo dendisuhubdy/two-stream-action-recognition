@@ -4,7 +4,7 @@ from torch.utils.data import Dataset, DataLoader
 import torchvision.transforms as transforms
 import random
 from skimage import io, color, exposure
-
+import numpy as np
 
 from .split_train_test_video import *
 
@@ -21,14 +21,8 @@ class spatial_dataset(Dataset):
         return len(self.keys)
 
     def load_ucf_image(self,video_name, index):
-        if video_name.split('_')[0] == 'HandstandPushups':
-            n,g = video_name.split('_',1)
-            name = 'HandStandPushups_'+g
-            path = self.root_dir + 'HandstandPushups'+'/separated_images/v_'+name+'/v_'+name+'_'
-        else:
-            path = self.root_dir + video_name.split('_')[0]+'/separated_images/v_'+video_name+'/v_'+video_name+'_'
-         
-        img = Image.open(path +str(index)+'.jpg')
+        path = self.root_dir + 'v_'+video_name+'/frame{:06}.jpg'.format(index) 
+        img = Image.open(path)
         transformed_img = self.transform(img)
         img.close()
 
@@ -39,10 +33,11 @@ class spatial_dataset(Dataset):
         if self.mode == 'train':
             video_name, nb_clips = list(self.keys)[idx].split(' ')
             nb_clips = int(nb_clips)
+            # print(nb_clips)
             clips = []
-            clips.append(random.randint(1, nb_clips/3))
-            clips.append(random.randint(nb_clips/3, nb_clips*2/3))
-            clips.append(random.randint(nb_clips*2/3, nb_clips+1))
+            clips.append(random.randint(1, int(nb_clips/3)))
+            clips.append(random.randint(int(nb_clips/3), int(nb_clips*2/3)))
+            clips.append(random.randint(int(nb_clips*2/3), int(nb_clips+1)))
             
         elif self.mode == 'val':
             video_name, index = self.keys[idx].split(' ')
@@ -50,7 +45,7 @@ class spatial_dataset(Dataset):
         else:
             raise ValueError('There are only train and val mode')
 
-        label = self.values[idx]
+        label = list(self.values)[idx]
         label = int(label)-1
         
         if self.mode=='train':
@@ -58,7 +53,8 @@ class spatial_dataset(Dataset):
             for i in range(len(clips)):
                 key = 'img'+str(i)
                 index = clips[i]
-                data[key] = self.load_ucf_image(video_name, index)
+                result = self.load_ucf_image(video_name, index)
+                data[key] = result
                     
             sample = (data, label)
         elif self.mode=='val':
